@@ -26,12 +26,10 @@ public class ClientThread extends Thread {
         } else if (this.login == null) {
           this.login = line;
           line = "Подключился " + line;
-          Server.sendMessageToAllClients(line);
         } else {
           line = login + ": " + line;
-          Server.sendMessageToAllClients(line);
-          //System.out.println(line);
         }
+        Server.sendMessageToAllClients(line);
       }
     } catch (IOException e) {
       e.printStackTrace();

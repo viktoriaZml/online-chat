@@ -41,10 +41,18 @@ public class Server {
   }
 
   // пишем настройки в файл
-  public static void createSettingsFile() throws IOException {
-    FileWriter file = new FileWriter(settingsFile, false);
-    file.write(host + " " + port);
-    file.flush();
+  public static String createSettingsFile() {
+    FileWriter file = null;
+    try {
+      file = new FileWriter(settingsFile, false);
+      String settings = host + " " + port;
+      file.write(settings);
+      file.flush();
+      return settings;
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return "";
   }
 
   // отправляем сообщение всем клиентам
@@ -57,6 +65,10 @@ public class Server {
     }
   }
 
+  public static void addClientThread(ClientThread clientThread) {
+    clients.add(clientThread);
+  }
+
   public static void removeClientThread(ClientThread clientThread) {
     clients.remove(clientThread);
   }
@@ -65,8 +77,8 @@ public class Server {
     try {
       fileWriter.write(msg + "\n");
       fileWriter.flush();
-    } catch (IOException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      log.info("write to log-file error");
     }
   }
 }

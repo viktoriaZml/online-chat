@@ -1,11 +1,14 @@
 package Client;
 
+import org.apache.log4j.Logger;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.Scanner;
 
 public class ClientChat {
   private static final String settingsFile = "settings.txt";
+  private static final Logger log = Logger.getLogger(ClientChat.class.getName());
   private static final String logFile = "./Client/file.log";
   private static FileWriter fileWriter;
 
@@ -13,34 +16,38 @@ public class ClientChat {
     String[] settings = getSett();
     // Определяем сокет сервера
     Socket socket = new Socket(settings[0], Integer.parseInt(settings[1]));
+    fileWriter = new FileWriter(new File(logFile));
     // Получаем входящий и исходящий потоки информации
     try (BufferedReader in = new BufferedReader(
             new InputStreamReader(socket.getInputStream()));
          PrintWriter out = new PrintWriter(
                  new OutputStreamWriter(socket.getOutputStream()), true);
          Scanner scanner = new Scanner(System.in)) {
-      fileWriter = new FileWriter(logFile, true);
-      String name = null;
-      ServerListener serverListener = null;
-      String msg;
-      System.out.println("Введите свой ник (/exit для выхода):");
-      while (true) {
-        msg = scanner.nextLine();
-        if ("".equals(msg)) continue;
-        out.println(msg);
-        if ("/exit".equals(msg)) {
-          if (serverListener != null)
-            serverListener.interrupt();
-          //Thread.sleep(1000);
-          break;
-        }
-        if (name == null) {
-          name = msg;
-          serverListener = new ServerListener(in);
-        }
-      }
+      runChat(in, out, scanner);
     } catch (IOException e) {
       e.printStackTrace();
+    }
+  }
+
+  public static void runChat(BufferedReader in, PrintWriter out, Scanner scanner) throws IOException {
+    String name = null;
+    ServerListener serverListener = null;
+    String msg;
+    System.out.println("Введите свой ник (/exit для выхода):");
+    while (true) {
+      msg = scanner.nextLine();
+      if ("".equals(msg)) continue;
+      out.println(msg);
+      if ("/exit".equals(msg)) {
+        if (serverListener != null)
+          serverListener.interrupt();
+        //Thread.sleep(1000);
+        break;
+      }
+      if (name == null) {
+        name = msg;
+        serverListener = new ServerListener(in);
+      }
     }
   }
 
@@ -64,8 +71,8 @@ public class ClientChat {
     try {
       fileWriter.write(msg + "\n");
       fileWriter.flush();
-    } catch (IOException e) {
-      e.printStackTrace();
+    } catch (Exception e) {
+      log.info("write to log-file error");
     }
   }
 }
